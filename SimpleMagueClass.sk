@@ -1,0 +1,229 @@
+#█ █▄░█ █▀▀ █▀█
+#█ █░▀█ █▀░ █▄█
+
+# Developer: iTSZalk
+# Version: 1.1.0
+
+
+
+#█▀ █▀▀ ▀█▀ ▀█▀ █ █▄░█ █▀▀ █▀
+#▄█ ██▄ ░█░ ░█░ █ █░▀█ █▄█ ▄█
+
+options:
+
+
+	mage-class-enabled: true
+	mage-buff-himself: false
+	mage-max-energy: 120
+	mage-buff-radius: 20
+	mage-buff-cooldown: 10 seconds
+	mage-timer-command: timer set %player% BardEffect 10s
+	
+	mage-class-disabled: &bClass: &b&lMage &7--> &cDisabled!
+	mage-class-enabled-1: &bClass: &b&lMage &7--> &aEnabled!
+	mage-class-enabled-2: &bClass Info: &awww.yoursite.net/mage
+	
+	mage-slowness-item: gold nugget
+	mage-slowness-energy: 35
+	mage-weakness-item: coal
+	mage-weakness-energy: 30
+	mage-poison-item: cactus green
+	mage-poison-energy: 40
+	mage-hunger-item: rotten flesh
+	mage-hunger-energy: 25
+	mage-wither-item: spider eye
+	mage-wither-energy: 35
+	mage-nausea-item: seeds
+	mage-nausea-energy: 40
+	
+
+#█▀▀ █░█ █▄░█ █▀▀ ▀█▀ █ █▀█ █▄░█ █▀
+#█▀░ █▄█ █░▀█ █▄▄ ░█░ █ █▄█ █░▀█ ▄█
+
+#                                  #   
+#         <!> WARNING <!>          #               
+#   If you don't understand this   #
+#    please avoid modifying it.    #
+#   I am not responsible for any   #
+#        mistakes you make.        #
+#                                  #
+
+
+
+
+variables:
+	{mage.%player%} = false
+	
+every 5 seconds:
+	loop all players:
+		if {mage.%loop-player%} is true:
+			if {energy.%loop-player%} <= {@mage-max-energy}:
+				send "&b&lMage Energy&7: &c%{energy.%loop-player%}%" to loop-player
+
+every 1 second:
+	if {@mage-class-enabled} is true:
+		loop all players:
+			if loop-player is wearing gold helmet:
+				if loop-player is wearing chain chestplate:
+					if loop-player is wearing chain leggings:
+						if loop-player is wearing gold boots:
+							if {mage.%loop-player%} is false:
+								apply swiftness 2 to loop-player for 999999 seconds
+								apply regeneration 1 to loop-player for 999999 seconds
+								apply resistance 2 to the loop-player for 999999 seconds
+								send "{@mage-class-enabled-1}" to loop-player
+								send "{@mage-class-enabled-2}" to loop-player
+								set {mage.%loop-player%} to true
+							else:
+								if {energy.%loop-player%} is not set:
+									set {energy.%loop-player%} to 0
+								else:
+									if {energy.%loop-player%} < {@mage-max-energy}:
+										add 1 to {energy.%loop-player%}
+						else:
+							if {mage.%loop-player%} is true:
+								remove swiftness from loop-player
+								remove resistance from loop-player
+								remove regeneration from loop-player
+								set {energy.%loop-player%} to 0
+								set {mage.%loop-player%} to false	
+								send "{@mage-class-disabled}" to loop-player
+					else:
+						if {mage.%loop-player%} is true:
+							remove swiftness from loop-player
+							remove resistance from loop-player
+							remove regeneration from loop-player
+							set {energy.%loop-player%} to 0
+							set {mage.%loop-player%} to false
+							send "{@mage-class-disabled}" to loop-player
+				else:
+					if {mage.%loop-player%} is true:
+						remove swiftness from loop-player
+						remove resistance from loop-player
+						remove regeneration from loop-player
+						set {energy.%loop-player%} to 0
+						set {mage.%loop-player%} to false
+						send "{@mage-class-disabled}" to loop-player
+			else:
+				if {mage.%loop-player%} is true:
+					remove swiftness from loop-player
+					remove resistance from loop-player
+					remove regeneration from loop-player
+					set {energy.%loop-player%} to 0
+					set {mage.%loop-player%} to false
+					send "{@mage-class-disabled}" to loop-player
+						
+on right click with {@mage-slowness-item}:
+	if {mage.%player%} is true:
+		set {_waited} to difference between {effect.%player%.lastused} and now
+		if {_waited} is less than {@mage-buff-cooldown}:
+			send "&cYou cannot use this for another &l%difference between {@mage-buff-cooldown} and {_waited}%&c." to player
+			stop
+		else:
+			if {energy.%player%} >= {@mage-slowness-energy}:
+				loop all players in radius {@mage-buff-radius} of player:
+					apply slowness 2 to loop-player for 6 seconds
+				if {@mage-buff-himself} is true:
+					apply slowness 2 to player for 6 seconds
+				remove {@mage-slowness-energy} from {energy.%player%}
+				send "&eYou have just used &cSLOWNESS_2 &emage buff for &a{@mage-slowness-energy} &eenergy." to player
+				execute console command "{@mage-timer-command}"
+				set {effect.%player%.lastused} to now
+			else:
+				send "&cYou do not have enough energy for this! You need {@mage-slowness-energy} energy, but you only have %{energy.%player%}%." to player
+			
+on right click with {@mage-weakness-item}:
+	if {mage.%player%} is true:
+		set {_waited} to difference between {effect.%player%.lastused} and now
+		if {_waited} is less than {@mage-buff-cooldown}:
+			send "&cYou cannot use this for another &l%difference between {@mage-buff-cooldown} and {_waited}%&c." to player
+			stop
+		else:
+			if {energy.%player%} >= {@mage-weakness-energy}:
+				loop all players in radius {@mage-buff-radius} of player:
+					apply weakness 2 to loop-player for 6 seconds
+				if {@mage-buff-himself} is true:
+					apply weakness 2 to player for 6 seconds
+				remove {@mage-weakness-energy} from {energy.%player%}
+				send "&eYou have just used &cWEAKNESS_2 &emage buff for &a{@mage-weakness-energy} &eenergy." to player
+				execute console command "{@mage-timer-command}"
+				set {effect.%player%.lastused} to now
+			else:
+				send "&cYou do not have enough energy for this! You need {@mage-weakness-energy} energy, but you only have %{energy.%player%}%." to player
+			
+on right click with {@mage-poison-item}:
+	if {mage.%player%} is true:
+		set {_waited} to difference between {effect.%player%.lastused} and now
+		if {_waited} is less than {@mage-buff-cooldown}:
+			send "&cYou cannot use this for another &l%difference between {@mage-buff-cooldown} and {_waited}%&c." to player
+			stop
+		else:
+			if {energy.%player%} >= {@mage-poison-energy}:
+				loop all players in radius {@mage-buff-radius} of player:
+					apply poison 1 to loop-player for 6 seconds
+				if {@mage-buff-himself} is true:
+					apply poison 1 to player for 6 seconds
+				remove {@mage-poison-energy} from {energy.%player%}
+				send "&eYou have just used &cPOISON_1 &emage buff for &a{@mage-poison-energy} &eenergy." to player
+				execute console command "{@mage-timer-command}"
+				set {effect.%player%.lastused} to now
+			else:
+				send "&cYou do not have enough energy for this! You need {@mage-poison-energy} energy, but you only have %{energy.%player%}%." to player
+			
+on right click with {@mage-hunger-item}:
+	if {mage.%player%} is true:
+		set {_waited} to difference between {effect.%player%.lastused} and now
+		if {_waited} is less than {@mage-buff-cooldown}:
+			send "&cYou cannot use this for another &l%difference between {@mage-buff-cooldown} and {_waited}%&c." to player
+			stop
+		else:
+			if {energy.%player%} >= {@mage-hunger-energy}:
+				loop all players in radius {@mage-buff-radius} of player:
+					apply hunger 2 to loop-player for 6 seconds
+				if {@mage-buff-himself} is true:
+					apply hunger 2 to player for 6 seconds
+				remove {@mage-hunger-energy} from {energy.%player%}
+				send "&eYou have just used &cHUNGER_2 &emage buff for &a{@mage-hunger-energy} &eenergy." to player
+				execute console command "{@mage-timer-command}"
+				set {effect.%player%.lastused} to now
+			else:
+				send "&cYou do not have enough energy for this! You need {@mage-hunger-energy} energy, but you only have %{energy.%player%}%." to player
+			
+on right click with {@mage-wither-item}:
+	if {mage.%player%} is true:
+		set {_waited} to difference between {effect.%player%.lastused} and now
+		if {_waited} is less than {@mage-buff-cooldown}:
+			send "&cYou cannot use this for another &l%difference between {@mage-buff-cooldown} and {_waited}%&c." to player
+			stop
+		else:
+			if {energy.%player%} >= {@mage-wither-energy}:
+				loop all players in radius {@mage-buff-radius} of player:
+					apply wither 2 to loop-player for 6 seconds
+				if {@mage-buff-himself} is true:
+					apply wither 2 to player for 6 seconds
+				remove {@mage-wither-energy} from {energy.%player%}
+				send "&eYou have just used &cWITHER_2 &emage buff for &a{@mage-wither-energy} &eenergy." to player
+				execute console command "{@mage-timer-command}"
+				set {effect.%player%.lastused} to now
+			else:
+				send "&cYou do not have enough energy for this! You need {@mage-wither-energy} energy, but you only have %{energy.%player%}%." to player
+			
+on right click with {@mage-nausea-item}:
+	if {mage.%player%} is true:
+		set {_waited} to difference between {effect.%player%.lastused} and now
+		if {_waited} is less than {@mage-buff-cooldown}:
+			send "&cYou cannot use this for another &l%difference between {@mage-buff-cooldown} and {_waited}%&c." to player
+			stop
+		else:
+			if {energy.%player%} >= {@mage-nausea-energy}:
+				loop all players in radius {@mage-buff-radius} of player:
+					apply nausea 2 to loop-player for 6 seconds
+				if {@mage-buff-himself} is true:
+					apply nausea 2 to player for 6 seconds
+				remove {@mage-nausea-energy} from {energy.%player%}
+				send "&eYou have just used &cNAUSEA_2 &emage buff for &a{@mage-nausea-energy} &eenergy." to player
+				execute console command "{@mage-timer-command}"
+				set {effect.%player%.lastused} to now
+			else:
+				send "&cYou do not have enough energy for this! You need {@mage-nausea-energy} energy, but you only have %{energy.%player%}%." to player
+				
